@@ -71,7 +71,7 @@ class Game:
         self.bg.fill(self.BACKGROUND_COLOR)
         self.bg.blit(pygame.image.load("resources/background.jpg"), (0, 0))
 
-        self.cards = [CardVision((1000, 25))]
+        self.cards = [CardVision((1000, 25), self.client.i)]
         for card in self.cards:
             card.draw_on(self.bg)
 
@@ -191,8 +191,73 @@ class Game:
         pygame.display.flip()
 
 
-class CardVision:
+class Card:
+    """
+    A basic card instance.
+
+    A card represents the top of the deck, where the player can click to draw a card.
+    
+    Attributes:
+        nw_position (Tuple[float, float]):
+    """
+
     WIDTH, HEIGHT = 180, 240
+
+    CARDS = []
+
+    def __init__(self, nw_position):
+        """
+
+        Args:
+            nw_position (Tuple[float, float]):
+        """
+        self.nw_position = nw_position
+        self.card_back = pygame.surface.Surface((self.WIDTH, self.HEIGHT), flags=pygame.HWSURFACE | pygame.DOUBLEBUF)
+
+    def draw_on(self, surface):
+        """
+        Draw the card on the surface
+
+        Args:
+            surface (pygame.Surface):
+
+        Returns:
+            None
+        """
+        surface.blit(self.card_back, self.nw_position)
+
+    def collide(self, loc):
+        """
+        Test if the given location is on the card
+
+        Args:
+            loc (Tuple[float, float]):
+
+        Returns:
+            bool:
+        """
+        return self.card_back.get_rect().collidepoint(loc[0] - self.nw_position[0], loc[1] - self.nw_position[1])
+
+    def draw(self, i_card):
+        """
+        Called to draw the card self.CARDS[i_card]
+
+        Args:
+            i_card (int):
+
+        Returns:
+            any
+        """
+        pass
+
+
+class CardVision(Card):
+    """
+    Vision cards
+
+    Attributes:
+        owner (int): the id of the player owning the Game instance
+    """
 
     CARDS = [
         ("Vision cupide", "Je pense que tu es Neutre ou Shadow",
@@ -224,22 +289,86 @@ class CardVision:
         ("Vision suprème", "", "Monte moi secrètement ta carte Personnage !")
     ]
 
-    def __init__(self, nw_position):
-        self.nw_position = nw_position
-
-        self.card_back = pygame.surface.Surface((self.WIDTH, self.HEIGHT), flags=pygame.HWSURFACE | pygame.DOUBLEBUF)
+    def __init__(self, nw_position, owner):
+        """
+        Args:
+            nw_position (Tuple[float, float]):
+            owner (int):
+        """
+        super().__init__(nw_position)
         self.card_back.fill((0, 255, 0))
+        self.owner = owner
 
-    def draw_on(self, surface):
-        surface.blit(self.card_back, self.nw_position)
+    def draw(self, i_card):
+        class DrawVisionPopup(popup.Popup):
+            def __init__(self, owner):
+                super().__init__()
+                self.owner = owner
+                self.i = -1
 
-    def collide(self, loc):
-        return self.card_back.get_rect().collidepoint(loc[0] - self.nw_position[0], loc[1] - self.nw_position[1])
+                tkinter.Label(self, text="A quel joueur voulez vous donner cette vision ?",
+                              wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
+                tkinter.Label(self, text=CardVision.CARDS[i_card][0],
+                              wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
+                tkinter.Label(self, text=CardVision.CARDS[i_card][1],
+                              wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
+                tkinter.Label(self, text=CardVision.CARDS[i_card][2],
+                              wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
 
-    def ask_target(self):
-        answer = tkinter.messagebox.askyesno(message="A qui souhaitez vous envoyer cette vision ?")
-        # if answer:
-        #     self.client.reveal()
+                frame = tkinter.Frame(self)
+                self.var = tkinter.IntVar()
+                self.var.set(-1)
+                for i in range(len(PLAYERS)):
+                    if i != self.owner:
+                        tkinter.Radiobutton(frame, text=PLAYERS[i][0], variable=self.var, value=i).grid(
+                            row=i // 4, column=i % 4, sticky=tkinter.W, padx=10, pady=10)
+                frame.pack()
+
+                tkinter.Button(self, text="Ok", padx=30, pady=10, command=self.answer).pack(padx=30, pady=30)
+
+                self.center()
+                self.show()
+
+            def answer(self):
+                self.i = self.var.get()
+                if self.i >= 0:
+                    self.destroy()
+
+        return DrawVisionPopup(self.owner).i
+
+    def answer(self, i_card, i_from):
+        """
+        Answer the vision i_card from player i_from
+
+        Args:
+            i_card (int):
+            i_from (int):
+
+        Returns:
+            None
+        """
+        class AnswerVisionPopup(popup.Popup):
+            def __init__(self):
+                super().__init__()
+
+                tkinter.Label(self, text="Le joueur {0} vous donne la vision :".format(PLAYERS[i_from][0]),
+                              wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
+                tkinter.Label(self, text=CardVision.CARDS[i_card][0],
+                              wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
+                tkinter.Label(self, text=CardVision.CARDS[i_card][1],
+                              wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
+                tkinter.Label(self, text=CardVision.CARDS[i_card][2],
+                              wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
+
+                tkinter.Button(self, text="Ok", padx=30, pady=10, command=self.answer).pack(padx=30, pady=30)
+
+                self.center()
+                self.show()
+
+            def answer(self):
+                self.destroy()
+
+        return AnswerVisionPopup()
 
 
 class Area:

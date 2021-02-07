@@ -68,10 +68,11 @@ class Client(socket.socket):
             elif msg[0] == 'turn':
                 self.game.active_player.i = msg[1]
             elif msg[0] == 'draw':
-                print("Player {0} drawed card {1} from {2}".format(msg[1], msg[3], msg[2]))
-                if msg[1] == 0:
-                    print(game.CardVision.CARDS[msg[2]])
-                    self.game.cards[0].ask_target()
+                if msg[2] == 0 and self.i == msg[1]:
+                    self.send_vision(msg[3], self.game.cards[0].draw(msg[3]))
+            elif msg[0] == 'vision':
+                print(msg)
+                self.game.cards[0].answer(msg[1], msg[2])
             else:
                 print(msg)
 
@@ -135,6 +136,19 @@ class Client(socket.socket):
             None
         """
         comm.send(self, ['draw', i])
+
+    def send_vision(self, i_vision, i_player):
+        """
+        Send the vision i_vision to the player i_player
+
+        Args:
+            i_vision (int):
+            i_player (int):
+
+        Returns:
+            None
+        """
+        comm.send(self, ['vision', i_vision, i_player])
 
 
 if __name__ == '__main__':

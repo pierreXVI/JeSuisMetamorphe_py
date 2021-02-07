@@ -38,7 +38,8 @@ class ClientHandler(asyncore.dispatcher):
             'dices': the client rolled the dices, notify every client and send the dice values
             'reveal': the client revealed it's character, notify every client
             'turn': the client ended it's turn, notify every client
-            'draw': Todo
+            'draw': the client draw a card, choose which and notify every client
+            'vision: the client send a vision card, to another client, notify the other client
 
         Returns:
             None
@@ -83,6 +84,13 @@ class ClientHandler(asyncore.dispatcher):
                         comm.send(client, ['draw', self.i, msg[1], i_card])
             else:
                 print("Cannot draw card of type {0}".format(msg[1]))
+        elif msg[0] == 'vision':
+            if self.server.clients[msg[2]]:
+                print("Player {0} send vision card to player {1}"
+                      .format(game.PLAYERS[self.i][0], game.PLAYERS[msg[2]][0]))
+                comm.send(self.server.clients[msg[2]], ['vision', msg[1], self.i])
+            else:
+                print("Error: Client {0} is not connected".format(msg[2]))
 
 
 class Server(asyncore.dispatcher):
@@ -91,15 +99,15 @@ class Server(asyncore.dispatcher):
     It also maintains the game data.
 
     Attributes:
-        clients (list): list of size game.N_PLAYERS, containing the connected clients, or None
-        tokens_center (list): the 2 * game.N_PLAYERS token coordinates, stored as tuples of length 2,
-            where token_center[2 * i] and token_center[2 * i + 1] belong to player i
-        dices_val (list): the dice 4 and dice 6 values, in this order
-        characters (list): the playing characters, stored as (alignment, i, flag_revealed),
+        clients (List[socket.socket]): list of size game.N_PLAYERS, containing the connected clients, or None
+        tokens_center (List[Tuples[float, float]]): the 2 * game.N_PLAYERS token coordinates,
+            stored as tuples of length 2, where token_center[2 * i] and token_center[2 * i + 1] belong to player i
+        dices_val (List[int]): the dice 4 and dice 6 values, in this order
+        characters (List[Tuple[int, int, bool]]): the playing characters, stored as (alignment, i, flag_revealed),
             the character is then game.Character.CHARACTERS[alignment][i], and is revealed if flag_revealed == True
-        areas (list): order of the 6 area cards
+        areas (List[int]): order of the 6 area cards
         active_player (int): the current player
-        cards (list): Todo
+        cards (List[List[int]]): the remaining cards in the decks
     """
 
     DELAY = 0.1  # Approximate delay between two asyncore.poll
