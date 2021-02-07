@@ -6,6 +6,7 @@ import tkinter.messagebox
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # To hide pygame message
 import pygame  # noqa: E402
+import popup  # noqa: E402
 
 # List of the player, where a player is represented by the tuple (name (str), color_rgb (tuple))
 PLAYERS = [('Red', (255, 0, 0)), ('Green', (0, 255, 0)), ('Blue', (0, 0, 255)), ('White', (255, 255, 255)),
@@ -126,10 +127,8 @@ class Game:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
                     self.client.roll_dice()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-                    if not self.characters[self.client.i].revealed:
-                        answer = tkinter.messagebox.askyesno(message="Voulez vous vraiment vous révéler ?")
-                        if answer:
-                            self.client.reveal()
+                    if self.characters[self.client.i].reveal():
+                        self.client.reveal()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     for token in sorted(self.owned_tokens, key=lambda t: (t.center[1], t.center[0]), reverse=True):
                         if token.collide(event.pos):
@@ -531,6 +530,32 @@ class Character:
             surface.blit(self.card, self.nw_position)
         else:
             surface.blit(self.card_back, self.nw_position)
+
+    def reveal(self):
+        if not self.revealed:
+            class RevealPopup(popup.Popup):
+                def __init__(self):
+                    super().__init__()
+                    self.answer = False
+                    tkinter.Label(self, text="Voulez vous vraiment vous révéler ?",
+                                  wraplength=200, padx=30, pady=10, font=(None, 16)).pack()
+                    tkinter.Button(self, text="Oui", padx=30, pady=10, command=self.answer_yes) \
+                        .pack(side=tkinter.LEFT, padx=30, pady=30)
+                    tkinter.Button(self, text="Non", padx=30, pady=10, command=self.answer_no) \
+                        .pack(side=tkinter.RIGHT, padx=30, pady=30)
+                    self.center()
+                    self.show()
+
+                def answer_yes(self):
+                    self.answer = True
+                    self.destroy()
+
+                def answer_no(self):
+                    self.answer = False
+                    self.destroy()
+
+            return RevealPopup().answer
+        return False
 
 
 class Token:
