@@ -1,3 +1,4 @@
+import time
 import tkinter
 
 import pygame
@@ -18,14 +19,23 @@ class Popup(tkinter.Toplevel):
         self.wm_attributes('-topmost', True)
         self.wm_attributes('-type', 'splash')
 
+        self._open = False
+
     def show(self):
         """
         Shows the popup window.
 
+        Discards all pygame events, so that the main windows is not considered as unresponsive by the window manager.
+
         Returns:
             None
         """
-        self.wait_window(self)
+        self._open = True
+        while self._open:
+            self.update_idletasks()
+            self.update()
+            time.sleep(0.1)
+            pygame.event.clear()
 
     def center(self):
         """
@@ -42,13 +52,8 @@ class Popup(tkinter.Toplevel):
         """
         Destroys the popup window.
 
-        Discards all events, so that the main pygame loop will ignore events that occurred during the popup lifetime.
-
         Returns:
             None
         """
         super().destroy()
-        try:
-            pygame.event.clear()
-        except pygame.error:
-            pass
+        self._open = False
