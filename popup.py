@@ -12,30 +12,33 @@ class Popup(tkinter.Toplevel):
     """
     tkinter.Tk().wm_withdraw()  # Hide the master window
 
-    def __init__(self):
+    def __init__(self, game):
         super().__init__()
         self.title('')
         self.wm_resizable(False, False)
         self.wm_attributes('-topmost', True)
         self.wm_attributes('-type', 'splash')
 
+        self._game = game
         self._open = False
 
     def show(self):
         """
         Shows the popup window.
 
-        Discards all pygame events, so that the main windows is not considered as unresponsive by the window manager.
+        Maintain the Game instance loop but discards all events
 
         Returns:
             None
         """
         self._open = True
         while self._open:
+            self._game.client.poll()
             self.update_idletasks()
             self.update()
-            time.sleep(0.1)
             pygame.event.clear()
+            self._game.update_display()
+            self._game.clock.tick(self._game.FRAME_RATE)
 
     def center(self):
         """

@@ -21,6 +21,7 @@ class Game:
     Attributes:
         client (client.client):
         running (bool):
+        clock (pygame.time.Clock):
 
         screen (pygame.Surface):
         bg (pygame.Surface): background, with the area cards
@@ -63,6 +64,7 @@ class Game:
         self.client = c
 
         self.running = False
+        self.clock = pygame.time.Clock()
 
         self.screen = pygame.display.set_mode((self.W, self.H), flags=pygame.HWSURFACE | pygame.DOUBLEBUF)
         pygame.display.set_caption('Shadow Hunters, player {0}'.format(PLAYERS[self.client.i][0]))
@@ -96,7 +98,7 @@ class Game:
             self.characters.append(Character(*characters[i],
                                              nw_position=(self.W - (i % 4 + 1) * (Character.WIDTH + 30),
                                                           self.H - (i // 4 + 1) * (Character.HEIGHT + 30)),
-                                             i_player=i, owned=(i == self.client.i)))
+                                             i_player=i, game=self))
 
         self.active_player = ActivePlayer(active_player, self.client.i)
 
@@ -113,7 +115,6 @@ class Game:
         Returns:
             None
         """
-        clock = pygame.time.Clock()
         self.running = True
 
         while self.running:
@@ -157,7 +158,7 @@ class Game:
                     token.center = pygame.mouse.get_pos()
 
             self.update_display()
-            clock.tick(self.FRAME_RATE)
+            self.clock.tick(self.FRAME_RATE)
 
     def update_display(self):
         """
@@ -256,7 +257,7 @@ class CardVision(Card):
     Vision cards
 
     Attributes:
-        owner (int): the id of the player owning the Game instance
+        game (Game): the Game instance
     """
 
     CARDS = [
@@ -289,21 +290,20 @@ class CardVision(Card):
         ("Vision suprème", "", "Monte moi secrètement ta carte Personnage !")
     ]
 
-    def __init__(self, nw_position, owner):
+    def __init__(self, nw_position, game):
         """
         Args:
             nw_position (Tuple[float, float]):
-            owner (int):
+            game (Game):
         """
         super().__init__(nw_position)
         self.card_back.fill((0, 255, 0))
-        self.owner = owner
+        self.game = game
 
     def draw(self, i_card):
         class DrawVisionPopup(popup.Popup):
-            def __init__(self, owner):
-                super().__init__()
-                self.owner = owner
+            def __init__(self, game):
+                super().__init__(game)
                 self.i = -1
 
                 tkinter.Label(self, text="A quel joueur voulez vous donner cette vision ?",
@@ -319,7 +319,7 @@ class CardVision(Card):
                 self.var = tkinter.IntVar()
                 self.var.set(-1)
                 for i in range(len(PLAYERS)):
-                    if i != self.owner:
+                    if i != self._game.client.i:
                         tkinter.Radiobutton(frame, text=PLAYERS[i][0], variable=self.var, value=i).grid(
                             row=i // 4, column=i % 4, sticky=tkinter.W, padx=10, pady=10)
                 frame.pack()
@@ -334,7 +334,7 @@ class CardVision(Card):
                 if self.i >= 0:
                     self.destroy()
 
-        return DrawVisionPopup(self.owner).i
+        return DrawVisionPopup(self.game).i
 
     def answer(self, i_card, i_from):
         """
@@ -347,9 +347,10 @@ class CardVision(Card):
         Returns:
             None
         """
+
         class AnswerVisionPopup(popup.Popup):
-            def __init__(self):
-                super().__init__()
+            def __init__(self, game):
+                super().__init__(game)
 
                 tkinter.Label(self, text="Le joueur {0} vous donne la vision :".format(PLAYERS[i_from][0]),
                               wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
@@ -368,7 +369,7 @@ class CardVision(Card):
             def answer(self):
                 self.destroy()
 
-        return AnswerVisionPopup()
+        return AnswerVisionPopup(self.game)
 
 
 class Area:
@@ -450,9 +451,9 @@ class Character:
         revealed (bool):
         nw_position (Tuple[float, float]):
         owned (bool): True if the character belong to the Game instance owner
+        game (Game): the Game instance
         card_back (pygame.Surface):
         card (pygame.Surface):
-
     """
     WIDTH, HEIGHT = 180, 240
     MARGIN = 10
@@ -586,7 +587,7 @@ class Character:
         8: (3, 2, 3)
     }
 
-    def __init__(self, align, i_character, revealed, nw_position, i_player, owned):
+    def __init__(self, align, i_character, revealed, nw_position, i_player, game):
         """
 
         Args:
@@ -595,11 +596,12 @@ class Character:
             revealed (bool):
             nw_position (Tuple[float, float]):
             i_player (int): the corresponding player id
-            owned (bool):
+            game (Game):
         """
         self.revealed = revealed
         self.nw_position = nw_position
-        self.owned = owned
+        self.owned = game.client.i == i_player
+        self.game = game
 
         self.card_back = pygame.surface.Surface((self.WIDTH + 2 * self.MARGIN, self.HEIGHT + 2 * self.MARGIN),
                                                 flags=pygame.HWSURFACE | pygame.DOUBLEBUF)
@@ -663,8 +665,8 @@ class Character:
     def reveal(self):
         if not self.revealed:
             class RevealPopup(popup.Popup):
-                def __init__(self):
-                    super().__init__()
+                def __init__(self, game):
+                    super().__init__(game)
                     self.answer = False
                     tkinter.Label(self, text="Voulez vous vraiment vous révéler ?",
                                   wraplength=200, padx=30, pady=10, font=(None, 16)).pack()
@@ -683,7 +685,7 @@ class Character:
                     self.answer = False
                     self.destroy()
 
-            return RevealPopup().answer
+            return RevealPopup(self.game).answer
         return False
 
 
