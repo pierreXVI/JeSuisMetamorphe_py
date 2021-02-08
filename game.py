@@ -8,9 +8,9 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # To hide pygame message
 import pygame  # noqa: E402
 import popup  # noqa: E402
 
-# List of the player, where a player is represented by the tuple (name (str), color_rgb (tuple))
 PLAYERS = [('Red', (255, 0, 0)), ('Green', (0, 255, 0)), ('Blue', (0, 0, 255)), ('White', (255, 255, 255)),
            ('Orange', (250, 150, 50)), ('Yellow', (255, 255, 0)), ('Purple', (100, 0, 200)), ('Black', (20, 20, 20))]
+""" List of the player, where a player is represented by the tuple (name (str), color_rgb (Tuple[int, int, int])) """
 N_PLAYERS = len(PLAYERS)
 
 
@@ -19,22 +19,21 @@ class Game:
     The game instance
 
     Attributes:
-        client (client.client):
-        running (bool):
-        clock (pygame.time.Clock):
+        client (client.client)
+        running (bool)
+        clock (pygame.time.Clock)
 
-        screen (pygame.Surface):
+        screen (pygame.Surface)
         bg (pygame.Surface): background, with the area cards
-        zoom (pygame.Surface):
-        flag_zoom (bool):
+        zoom (pygame.Surface)
+        flag_zoom (bool)
 
-        cards (list): the three card decks, list of three Card instances
-        tokens (list): the 2 * N_PLAYERS Token instances
-        owned_tokens (list): the 2 Token instances owned by the player
-        dices (list): the 2 Dice instances
-        characters (list): the N_PLAYERS Character instances
-        active_player (ActivePlayer):
-
+        cards (List[Card]): the three card decks, list of three Card instances
+        tokens (List[Token]): the 2 * N_PLAYERS Token instances
+        owned_tokens (List[Token]): the 2 Token instances owned by the player
+        dices (List[Dice]): the 2 Dice instances
+        characters (List[Character]): the N_PLAYERS Character instances
+        active_player (ActivePlayer)
     """
 
     W, H = 1600, 900  # Width and height of the graphic window
@@ -49,14 +48,14 @@ class Game:
     def __init__(self, c, tokens_center, dices_val, characters, areas, active_player):
         """
         Args:
-            c (client.Client):
-            tokens_center (list): the 2 * game.N_PLAYERS token coordinates, stored as tuples of length 2,
-                where token_center[2 * i] and token_center[2 * i + 1] belong to player i
-            dices_val (list): the dice 4 and dice 6 values, in this order
-            characters (list): the playing characters, stored as (alignment, i, flag_revealed),
+            c (client.Client)
+            tokens_center (List[Tuple[float, float]]): the 2 * game.N_PLAYERS token coordinates,
+                stored as tuples of length 2, where token_center[2 * i] and token_center[2 * i + 1] belong to player i
+            dices_val (List[int]): the dice 4 and dice 6 values, in this order
+            characters (List[Tuple[int, int, bool]]): the playing characters, stored as (alignment, i, flag_revealed),
                 the character is then Character.CHARACTERS[alignment][i], and is revealed if flag_revealed == True
-            areas (list): order of the 6 area cards
-            active_player (int):
+            areas (List[int]): order of the 6 area cards
+            active_player (int)
         """
         pygame.init()
         tkinter.Tk().wm_withdraw()
@@ -73,7 +72,7 @@ class Game:
         self.bg.fill(self.BACKGROUND_COLOR)
         self.bg.blit(pygame.image.load("resources/background.jpg"), (0, 0))
 
-        self.cards = [CardVision((1000, 25), self.client.i)]
+        self.cards = [CardBlack((800, 25)), CardVision((1000, 25), self), CardWhite((1200, 25))]
         for card in self.cards:
             card.draw_on(self.bg)
 
@@ -206,9 +205,8 @@ class Card:
 
     def __init__(self, nw_position):
         """
-
         Args:
-            nw_position (Tuple[float, float]):
+            nw_position (Tuple[float, float])
         """
         self.nw_position = nw_position
         self.card_back = pygame.surface.Surface((self.WIDTH, self.HEIGHT), flags=pygame.HWSURFACE | pygame.DOUBLEBUF)
@@ -218,7 +216,7 @@ class Card:
         Draw the card on the surface
 
         Args:
-            surface (pygame.Surface):
+            surface (pygame.Surface)
 
         Returns:
             None
@@ -230,19 +228,19 @@ class Card:
         Test if the given location is on the card
 
         Args:
-            loc (Tuple[float, float]):
+            loc (Tuple[float, float])
 
         Returns:
             bool:
         """
         return self.card_back.get_rect().collidepoint(loc[0] - self.nw_position[0], loc[1] - self.nw_position[1])
 
-    def draw(self, i_card):
+    def draw(self, i_card, *_):
         """
         Called to draw the card self.CARDS[i_card]
 
         Args:
-            i_card (int):
+            i_card (int)
 
         Returns:
             any
@@ -297,7 +295,7 @@ class CardBlack(Card):
     def __init__(self, nw_position):
         """
         Args:
-            nw_position (Tuple[float, float]):
+            nw_position (Tuple[float, float])
         """
         super().__init__(nw_position)
         self.card_back.fill((20, 20, 20))
@@ -346,14 +344,14 @@ class CardVision(Card):
     def __init__(self, nw_position, game):
         """
         Args:
-            nw_position (Tuple[float, float]):
-            game (Game):
+            nw_position (Tuple[float, float])
+            game (Game)
         """
         super().__init__(nw_position)
         self.card_back.fill((0, 255, 0))
         self.game = game
 
-    def draw(self, i_card):
+    def draw(self, i_card, *_):
         class DrawVisionPopup(popup.Popup):
             def __init__(self, game):
                 super().__init__(game)
@@ -394,8 +392,8 @@ class CardVision(Card):
         Answer the vision i_card from player i_from
 
         Args:
-            i_card (int):
-            i_from (int):
+            i_card (int)
+            i_from (int)
 
         Returns:
             None
@@ -471,7 +469,7 @@ class CardWhite(Card):
     def __init__(self, nw_position):
         """
         Args:
-            nw_position (Tuple[float, float]):
+            nw_position (Tuple[float, float])
         """
         super().__init__(nw_position)
         self.card_back.fill((255, 255, 255))
@@ -482,8 +480,8 @@ class Area:
     Represents an area card, and defines the data regarding the areas
 
     Attributes:
-        nw_position (Tuple[float, float]):
-        card (pygame.Surface):
+        nw_position (Tuple[float, float])
+        card (pygame.Surface)
     """
     WIDTH, HEIGHT = 105, 150
 
@@ -540,7 +538,7 @@ class Area:
         Draw the area card on the surface
 
         Args:
-            surface (pygame.Surface):
+            surface (pygame.Surface)
 
         Returns:
             None
@@ -553,12 +551,12 @@ class Character:
     Represents a character card, and defines the data regarding the characters
 
     Attributes:
-        revealed (bool):
-        nw_position (Tuple[float, float]):
+        revealed (bool)
+        nw_position (Tuple[float, float])
         owned (bool): True if the character belong to the Game instance owner
         game (Game): the Game instance
-        card_back (pygame.Surface):
-        card (pygame.Surface):
+        card_back (pygame.Surface)
+        card (pygame.Surface)
     """
     WIDTH, HEIGHT = 180, 240
     MARGIN = 10
@@ -694,14 +692,13 @@ class Character:
 
     def __init__(self, align, i_character, revealed, nw_position, i_player, game):
         """
-
         Args:
             align (int): 0 for Shadow, 1 for Neutral and 2 for Hunter
             i_character (int): the character id in it's alignment
-            revealed (bool):
-            nw_position (Tuple[float, float]):
+            revealed (bool)
+            nw_position (Tuple[float, float])
             i_player (int): the corresponding player id
-            game (Game):
+            game (Game)
         """
         self.revealed = revealed
         self.nw_position = nw_position
@@ -745,10 +742,10 @@ class Character:
         Test if the given location is on the character card
 
         Args:
-            loc (Tuple[float, float]):
+            loc (Tuple[float, float])
 
         Returns:
-            bool:
+            bool
         """
         return self.card.get_rect().collidepoint(loc[0] - self.nw_position[0], loc[1] - self.nw_position[1])
 
@@ -757,7 +754,7 @@ class Character:
         Draw the character card on the surface
 
         Args:
-            surface (pygame.Surface):
+            surface (pygame.Surface)
 
         Returns:
             None
@@ -768,6 +765,12 @@ class Character:
             surface.blit(self.card_back, self.nw_position)
 
     def reveal(self):
+        """
+        Ask the player for character reveal
+
+        Returns:
+            bool: does the player want to reveal it's character
+        """
         if not self.revealed:
             class RevealPopup(popup.Popup):
                 def __init__(self, game):
@@ -803,8 +806,8 @@ class Token:
     The square and the bottom ellipse are darkened.
 
     Attributes:
-        color (Tuple[int, int, int]):
-        center (Tuple[float, float]):
+        color (Tuple[int, int, int])
+        center (Tuple[float, float])
 
     """
     SIZE = 10
@@ -813,8 +816,8 @@ class Token:
     def __init__(self, color, c_position):
         """
         Args:
-            color:
-            c_position: position of the center
+            color (Tuple[int, int, int])
+            c_position (Tuple[float, float]): position of the center
         """
         self.color = color
         self.center = c_position
@@ -826,10 +829,10 @@ class Token:
         Test if the given location is on the token
 
         Args:
-            loc (Tuple[float, float]):
+            loc (Tuple[float, float])
 
         Returns:
-            bool:
+            bool
         """
         dx = (loc[0] - self.center[0]) / self.SIZE
         dy = (loc[1] - self.center[1]) / self.SIZE
@@ -845,7 +848,7 @@ class Token:
         Draw the token on the surface
 
         Args:
-            surface (pygame.Surface):
+            surface (pygame.Surface)
 
         Returns:
             None
@@ -878,7 +881,7 @@ class Dice:
         roll_since (float): since when is the dice rolling, or -1 if it is not
         value (int): the current value, note that it is not the displayed value if the dice is rolling
         center (Tuple[float, float]): the position of the dice center
-        edges (list):
+        edges (list)
     """
     SIZE = 30
     ROLL_TIME = 1000
@@ -890,9 +893,9 @@ class Dice:
         """
         Args:
             n_shape (int): the shape of the dice representation (3 for triangle, 4 for square, ...)
-            n_val (int):
-            center (Tuple[float, float]):
-            value (int):
+            n_val (int)
+            center (Tuple[float, float])
+            value (int)
         """
         self.n_val = n_val
         self.roll_since = -1
@@ -908,7 +911,7 @@ class Dice:
         Draw the dice on the surface
 
         Args:
-            surface (pygame.Surface):
+            surface (pygame.Surface)
 
         Returns:
             None
@@ -935,7 +938,7 @@ class Dice:
         Roll the dice to reach the value
 
         Args:
-            value (int):
+            value (int)
 
         Returns:
             None
@@ -949,8 +952,8 @@ class ActivePlayer:
     Manage the active player
 
     Attributes:
-        i (int):
-        owner (int):
+        i (int)
+        owner (int)
         end_turn (pygame.Surface): the "end of turn" button
     """
     MARGIN = 5
@@ -979,10 +982,10 @@ class ActivePlayer:
         Test if the given location is on the "end of turn" button
 
         Args:
-            loc (Tuple[float, float]):
+            loc (Tuple[float, float])
 
         Returns:
-            bool:
+            bool
         """
         return self.i == self.owner and self.end_turn.get_rect().collidepoint(
             loc[0] - self.S_POSITION[0] + self.end_turn.get_width() / 2,
@@ -994,7 +997,7 @@ class ActivePlayer:
         the active player name if it's somebody else, the "end of turn" button if it's the Game instance owner
 
         Args:
-            surface (pygame.Surface):
+            surface (pygame.Surface)
 
         Returns:
             None
@@ -1015,13 +1018,13 @@ def render_text(text, font, color, surface, justify, x, y):
     Render a text with line breaks on a surface
 
     Args:
-        text (str):
-        font (pygame.font.Font):
-        color (Tuple[int, int, int]):
-        surface (pygame.Surface):
+        text (str)
+        font (pygame.font.Font)
+        color (Tuple[int, int, int])
+        surface (pygame.Surface)
         justify (str): 'l', 'r', 'c' for left, right and center
-        x (float):
-        y (float):
+        x (float)
+        y (float)
 
     Returns:
         float: the y coordinate of the last rendered line
