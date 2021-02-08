@@ -148,9 +148,7 @@ class Game:
                     for i in (2 * self.client.i, 2 * self.client.i + 1):
                         token = self.tokens[i]
                         if token.hold:
-                            token.hold = False
-                            token.center = token.center[0] - token.offset[0], token.center[1] - token.offset[1]
-                            token.offset = 0, 0
+                            token.drop()
                             self.client.send_token(i)
 
             for token in self.owned_tokens:
@@ -751,6 +749,17 @@ class Token:
         pygame.draw.rect(surface, c_dark, pygame.Rect(x - self.SIZE, y - self.SIZE, 2 * self.SIZE, 2 * self.SIZE))
         pygame.draw.ellipse(surface, self.color, pygame.Rect(x - self.SIZE, y - 3 * self.SIZE / 2,
                                                              2 * self.SIZE, self.SIZE))
+
+    def drop(self):
+        """
+        Drop the token
+
+        Returns:
+            None
+        """
+        self.hold = False
+        self.center = self.center[0] - self.offset[0], self.center[1] - self.offset[1]
+        self.offset = 0, 0
 
 
 class Dice:

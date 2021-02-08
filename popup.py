@@ -1,4 +1,3 @@
-import time
 import tkinter
 
 import pygame
@@ -32,11 +31,13 @@ class Popup(tkinter.Toplevel):
             None
         """
         self._open = True
+        for token in self._game.owned_tokens:
+            token.drop()
         while self._open:
-            self._game.client.poll()
             self.update_idletasks()
             self.update()
             pygame.event.clear()
+            self._game.client.poll()
             self._game.update_display()
             self._game.clock.tick(self._game.FRAME_RATE)
 
