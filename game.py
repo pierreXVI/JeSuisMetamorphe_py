@@ -250,9 +250,64 @@ class Card:
         pass
 
 
+class CardBlack(Card):
+    """
+    Dark cards
+
+    A dark card is represented by the tuple (name (str), flag equipment (bool), description (str))
+    """
+
+    CARDS = [
+        ("Chauve-souris vampire", False,
+         "Infligez 2 Blessures au joueur de votre choix, puis soignez une de vos Blessures."),
+        ("Chauve-souris vampire", False,
+         "Infligez 2 Blessures au joueur de votre choix, puis soignez une de vos Blessures."),
+        ("Chauve-souris vampire", False,
+         "Infligez 2 Blessures au joueur de votre choix, puis soignez une de vos Blessures."),
+        ("Succube tentatrice", False, "Volez une carte équipement au joueur de votre choix."),
+        ("Succube tentatrice", False, "Volez une carte équipement au joueur de votre choix."),
+        ("Araignée sanguinaire", False,
+         "Vous infligez 2 Blessures au personnage de votre choix, puis vous subissez vous-même 2 Blessures."),
+        ("Poupée démoniaque", False,
+         "Désignez un joueur et lancez le dé à 6 faces. "
+         "1 à 4 : infligez lui 3 Blessures. 5 ou 6 subissez 3 Blessures."),
+        ("Dynamite", False,
+         "Lancez les 2 dés et infligez 3 Blessures à tous les joueurs (vous compris) se trouvant dans le secteur "
+         "désigné par le total des 2 dés. Il ne se passe rien si ce total est 7."),
+        ("Rituel diabolique", False,
+         "Si vous êtes un Shadow, et si vous décidez de révéler (ou avez déjà révélé) "
+         "votre identité, soignez toutes vos Blessures."),
+        ("Peau de banane", False,
+         "Donnez une de vos cartes équipements à un autre personnage. "
+         "Si vous n'en possédez aucune, vous encaissez 1 Blessure."),
+        ("Tronçonneuse du mal", True, "Si votre attaque inflige des Blessures, la victime subit 1 Blessure en plus."),
+        ("Hachoir maudit", True, "Si votre attaque inflige des Blessures, la victime subit 1 Blessure en plus."),
+        ("Hache tueuse", True, "Si votre attaque inflige des Blessures, la victime subit 1 Blessure en plus."),
+        ("Revolver des ténèbres", True,
+         "Vous pouvez attaquer un joueur présent sur l'un des 4 lieux hors de votre secteur, "
+         "mais vous ne pouvez plus attaquer un joueur situé dans le même secteur que vous."),
+        ("Sabre hanté Masamuné", True,
+         "Vous êtes obligé d'attaquer durant votre tour. Lancez uniquement le dé à 4 faces, "
+         "le résultat indique les Blessures que vous infligez."),
+        ("Mitrailleuse funeste", True,
+         "Votre attaque affecte tous les personnages qui sont à votre porté. "
+         "Effectuez un seul jet de Blessures pour tous les joueurs concernés.")
+    ]
+
+    def __init__(self, nw_position):
+        """
+        Args:
+            nw_position (Tuple[float, float]):
+        """
+        super().__init__(nw_position)
+        self.card_back.fill((20, 20, 20))
+
+
 class CardVision(Card):
     """
     Vision cards
+
+    A vision card is represented by the tuple (name (str), "I think you are ..." (str), "if so, ..." (str))
 
     Attributes:
         game (Game): the Game instance
@@ -368,6 +423,58 @@ class CardVision(Card):
                 self.destroy()
 
         return AnswerVisionPopup(self.game)
+
+
+class CardWhite(Card):
+    """
+    White cards
+
+    A white card is represented by the tuple (name (str), flag equipment (bool), description (str))
+    """
+
+    CARDS = [
+        ("Éclair purificateur", False, "Chaque personnage, à l'exception de vous même, subit 2 Blessures."),
+        ("Eau bénite", False, "Vous êtes soigné de 2 Blessures."),
+        ("Eau bénite", False, "Vous êtes soigné de 2 Blessures."),
+        ("Savoir ancestral", False, "Lorsque votre tour est terminé, jouez immédiatement un nouveau tour."),
+        ("Avènement suprème", False,
+         "Si vous êtes un Hunter, vous pouvez révéler votre identité. Si vous le faites, ou si vous êtes déjà révélé, "
+         "vous soignez toutes vos Blessures."),
+        ("Miroir divin", False, "Si vous êtes un Shadow, autre que Métamorphe, vous devez révéler votre identité."),
+        ("Premiers secours", False,
+         "Placez le marqueur de Blessures du joueur de votre choix (y compris vous) sur le 7."),
+        ("Ange gardien", False,
+         "Les attaques ne vous infligent aucune Blessure jusqu'à la fin de votre prochain tour."),
+        ("Barre de chocolat", False,
+         "Si vous êtes Allie, Agnes, Emi, Ellen, Momie ou Métamorphe, et que vous choisissez de révéler "
+         "(ou avez déjà révélé) votre identité, vous soignez toutes vos Blessures."),
+        ("Bénédiction", False,
+         "Choisissez un joueur autre que vous même et lancez le dé à 6 faces. "
+         "Ce joueur guérit d'autant de Blessures que le résultat du dé."),
+        ("Crucifix en argent", True,
+         "Si vous attaquez et tuez un autre personnage, vous récupérez toutes ses cartes équipements."),
+        ("Toge sainte", True,
+         "Vos attaques infligent 1 Blessure en moins, et les Blessures que vous subissez sont réduites de 1."),
+        ("Lance de Longinus", True,
+         "Si vous êtes un Hunter, et que votre identité est révélée, chaque fois qu'une de vos attaque inflige des "
+         "Blessures, vous infligez 2 Blessures supplémentaires."),
+        ("Amulette", True,
+         "Vous ne subissez aucune Blessure causée par les cartes Ténèbres : "
+         "Araignée sanguinaire, Dynamite ou Chauve-souris vampire."),
+        ("Broche de chance", True,
+         "Un joueur dans la Forêt hantée ne peut pas utiliser le pouvoir du Lieu pour vous infliger des Blessures "
+         "(mais il peut toujours vous guérir)."),
+        ("Boussole mystique", True,
+         "Quand vous vous déplacez, vous pouvez lancer 2 fois les dés, et choisir quel résultat utiliser."),
+    ]
+
+    def __init__(self, nw_position):
+        """
+        Args:
+            nw_position (Tuple[float, float]):
+        """
+        super().__init__(nw_position)
+        self.card_back.fill((255, 255, 255))
 
 
 class Area:
