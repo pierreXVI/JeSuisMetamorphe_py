@@ -41,6 +41,7 @@ class ClientHandler(asyncore.dispatcher):
             'turn': the client ended it's turn, notify every client
             'draw': the client draw a card, choose which and notify every client
             'vision: the client send a vision card, to another client, notify the other client
+            'take': the client takes an equipment from another player, notify every client
 
         Returns:
             None
@@ -94,6 +95,11 @@ class ClientHandler(asyncore.dispatcher):
                 comm.send(self.server.clients[msg[2]], ['vision', msg[1], self.i])
             else:
                 print("Error: Client {0} is not connected".format(msg[2]))
+        elif msg[0] == 'take':
+            self.server.characters[self.i][3].append(self.server.characters[msg[1]][3].pop(msg[2]))
+            for client in self.server.clients:
+                if client is not None:
+                    comm.send(client, ['take', self.i, msg[1], msg[2]])
 
 
 class Server(asyncore.dispatcher):

@@ -76,6 +76,8 @@ class Client(socket.socket):
                     self.game.cards[msg[2]].draw(msg[3], msg[1])
             elif msg[0] == 'vision':
                 self.game.cards[card.TYPES.index(card.CardVision)].answer(msg[1], msg[2])
+            elif msg[0] == 'take':
+                self.game.characters[msg[1]].equipments.append(self.game.characters[msg[2]].equipments.pop(msg[3]))
             else:
                 print(msg)
 
@@ -152,6 +154,9 @@ class Client(socket.socket):
             None
         """
         comm.send(self, ['vision', i_vision, i_player])
+
+    def take_equipment(self, i_player, i_equipment):
+        comm.send(self, ['take', i_player, i_equipment])
 
 
 if __name__ == '__main__':
