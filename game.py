@@ -72,7 +72,7 @@ class Game:
         self.bg.fill(self.BACKGROUND_COLOR)
         self.bg.blit(pygame.image.load("resources/background.jpg"), (0, 0))
 
-        self.cards = [CardBlack((800, 25)), CardVision((1000, 25), self), CardWhite((1200, 25))]
+        self.cards = [CardBlack((800, 25), self), CardVision((1000, 25), self), CardWhite((1200, 25), self)]
         for card in self.cards:
             card.draw_on(self.bg)
 
@@ -196,19 +196,22 @@ class Card:
     A card represents the top of the deck, where the player can click to draw a card.
     
     Attributes:
-        nw_position (Tuple[float, float]):
+        nw_position (Tuple[float, float])
+        game (Game): the Game instance
+        card_back (pygame.Surface)
     """
 
     WIDTH, HEIGHT = 180, 240
 
     CARDS = []
 
-    def __init__(self, nw_position):
+    def __init__(self, nw_position, game):
         """
         Args:
             nw_position (Tuple[float, float])
         """
         self.nw_position = nw_position
+        self.game = game
         self.card_back = pygame.surface.Surface((self.WIDTH, self.HEIGHT), flags=pygame.HWSURFACE | pygame.DOUBLEBUF)
 
     def draw_on(self, surface):
@@ -235,12 +238,13 @@ class Card:
         """
         return self.card_back.get_rect().collidepoint(loc[0] - self.nw_position[0], loc[1] - self.nw_position[1])
 
-    def draw(self, i_card, *_):
+    def draw(self, i_card, i_player):
         """
         Called to draw the card self.CARDS[i_card]
 
         Args:
             i_card (int)
+            i_player (int): the player who draw the card
 
         Returns:
             any
@@ -292,13 +296,32 @@ class CardBlack(Card):
          "Effectuez un seul jet de Blessures pour tous les joueurs concernés.")
     ]
 
-    def __init__(self, nw_position):
+    def __init__(self, nw_position, game):
         """
         Args:
             nw_position (Tuple[float, float])
         """
-        super().__init__(nw_position)
+        super().__init__(nw_position, game)
         self.card_back.fill((20, 20, 20))
+
+    def draw(self, i_card, i_player):
+        class DrawDarkPopup(popup.Popup):
+            def __init__(self, game):
+                super().__init__(game)
+
+                tkinter.Label(self, text="Le joueur {0} pioche la carte :".format(PLAYERS[i_player][0]),
+                              wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
+                tkinter.Label(self, text=CardBlack.CARDS[i_card][0],
+                              wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
+                tkinter.Label(self, text=CardBlack.CARDS[i_card][2],
+                              wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
+
+                tkinter.Button(self, text="Ok", padx=30, pady=10, command=self.destroy).pack(padx=30, pady=30)
+
+                self.center()
+                self.show()
+
+        return DrawDarkPopup(self.game)
 
 
 class CardVision(Card):
@@ -347,11 +370,18 @@ class CardVision(Card):
             nw_position (Tuple[float, float])
             game (Game)
         """
-        super().__init__(nw_position)
+        super().__init__(nw_position, game)
         self.card_back.fill((0, 255, 0))
-        self.game = game
 
-    def draw(self, i_card, *_):
+    def draw(self, i_card, _):
+        """
+        Args:
+            i_card (int)
+
+        Returns:
+            int: who to send the vision card
+        """
+
         class DrawVisionPopup(popup.Popup):
             def __init__(self, game):
                 super().__init__(game)
@@ -466,13 +496,32 @@ class CardWhite(Card):
          "Quand vous vous déplacez, vous pouvez lancer 2 fois les dés, et choisir quel résultat utiliser."),
     ]
 
-    def __init__(self, nw_position):
+    def __init__(self, nw_position, game):
         """
         Args:
             nw_position (Tuple[float, float])
         """
-        super().__init__(nw_position)
+        super().__init__(nw_position, game)
         self.card_back.fill((255, 255, 255))
+
+    def draw(self, i_card, i_player):
+        class DrawWhitePopup(popup.Popup):
+            def __init__(self, game):
+                super().__init__(game)
+
+                tkinter.Label(self, text="Le joueur {0} pioche la carte :".format(PLAYERS[i_player][0]),
+                              wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
+                tkinter.Label(self, text=CardWhite.CARDS[i_card][0],
+                              wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
+                tkinter.Label(self, text=CardWhite.CARDS[i_card][2],
+                              wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
+
+                tkinter.Button(self, text="Ok", padx=30, pady=10, command=self.destroy).pack(padx=30, pady=30)
+
+                self.center()
+                self.show()
+
+        return DrawWhitePopup(self.game)
 
 
 class Area:

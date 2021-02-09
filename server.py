@@ -149,7 +149,9 @@ class Server(asyncore.dispatcher):
         self.active_player = 0  # Todo
         # self.active_player = random.randrange(game.N_PLAYERS)
 
-        self.cards = [list(range(len(game.CardVision.CARDS)))]
+        self.cards = [list(range(len(game.CardBlack.CARDS))),
+                      list(range(len(game.CardVision.CARDS))),
+                      list(range(len(game.CardWhite.CARDS)))]
         for card in self.cards:
             random.shuffle(card)
 
