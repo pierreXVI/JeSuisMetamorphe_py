@@ -311,6 +311,9 @@ class CardBlack(Card):
         self.card_back.fill((20, 20, 20))
 
     def draw(self, i_card, i_player):
+        if self.CARDS[i_card][1]:
+            self.game.characters[i_player].equipments.append((CardBlack, i_card))
+
         class DrawDarkPopup(popup.Popup):
             def __init__(self, game):
                 super().__init__(game)
@@ -511,6 +514,9 @@ class CardWhite(Card):
         self.card_back.fill((255, 255, 255))
 
     def draw(self, i_card, i_player):
+        if self.CARDS[i_card][1]:
+            self.game.characters[i_player].equipments.append((CardWhite, i_card))
+
         class DrawWhitePopup(popup.Popup):
             def __init__(self, game):
                 super().__init__(game)
@@ -613,7 +619,7 @@ class Character:
         nw_position (Tuple[float, float])
         i_player (int): the corresponding player id
         game (Game): the Game instance
-        equipments (List[Tuple[int, int]]): the character equipments
+        equipments (List[Tuple[Card, int]]): the character equipments
         card_back (pygame.Surface)
         card (pygame.Surface)
     """
@@ -764,7 +770,7 @@ class Character:
         self.nw_position = nw_position
         self.i_player = i_player
         self.game = game
-        self.equipments = equipments
+        self.equipments = [(Card.TYPES[e[0]], e[1]) for e in equipments]
 
         self.card_back = pygame.surface.Surface((self.WIDTH + 2 * self.MARGIN, self.HEIGHT + 2 * self.MARGIN),
                                                 flags=pygame.HWSURFACE | pygame.DOUBLEBUF)
@@ -871,7 +877,7 @@ class Character:
                                   .format(PLAYERS[character.i_player][0]),
                                   wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
                 for equip in character.equipments:
-                    card = Card.TYPES[equip[0]].CARDS[equip[1]]
+                    card = equip[0].CARDS[equip[1]]
                     tkinter.Label(self, text='{0} : {1}'.format(card[0], card[2]),
                                   wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
 

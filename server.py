@@ -79,6 +79,8 @@ class ClientHandler(asyncore.dispatcher):
             if self.server.cards[msg[1]]:
                 print("Player {0} draw a card".format(game.PLAYERS[self.i][0]))
                 i_card = self.server.cards[msg[1]].pop()
+                if game.Card.TYPES[msg[1]] != game.CardVision and game.Card.TYPES[msg[1]].CARDS[i_card][1]:
+                    self.server.characters[self.i][3].append((msg[1], i_card))
                 for client in self.server.clients:
                     if client is not None:
                         comm.send(client, ['draw', self.i, msg[1], i_card])
