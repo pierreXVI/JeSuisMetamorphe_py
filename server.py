@@ -10,6 +10,7 @@ import math
 import random
 import time
 
+import card
 import comm
 import game
 
@@ -79,7 +80,7 @@ class ClientHandler(asyncore.dispatcher):
             if self.server.cards[msg[1]]:
                 print("Player {0} draw a card".format(game.PLAYERS[self.i][0]))
                 i_card = self.server.cards[msg[1]].pop()
-                if game.Card.TYPES[msg[1]] != game.CardVision and game.Card.TYPES[msg[1]].CARDS[i_card][1]:
+                if card.TYPES[msg[1]] != card.CardVision and card.TYPES[msg[1]].CARDS[i_card][1]:
                     self.server.characters[self.i][3].append((msg[1], i_card))
                 for client in self.server.clients:
                     if client is not None:
@@ -152,9 +153,9 @@ class Server(asyncore.dispatcher):
         self.active_player = 0  # Todo
         # self.active_player = random.randrange(game.N_PLAYERS)
 
-        self.cards = [list(range(len(card_type.CARDS))) for card_type in game.Card.TYPES]
-        for card in self.cards:
-            random.shuffle(card)
+        self.cards = [list(range(len(card_type.CARDS))) for card_type in card.TYPES]
+        for c in self.cards:
+            random.shuffle(c)
 
         try:
             while True:

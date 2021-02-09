@@ -1,6 +1,7 @@
 import select
 import socket
 
+import card
 import comm
 import game
 
@@ -68,12 +69,13 @@ class Client(socket.socket):
             elif msg[0] == 'turn':
                 self.game.active_player.i = msg[1]
             elif msg[0] == 'draw':
-                if msg[2] == 1 and self.i == msg[1]:
-                    self.send_vision(msg[3], self.game.cards[msg[2]].draw(msg[3], msg[1]))
+                if card.TYPES[msg[2]] == card.CardVision:
+                    if self.i == msg[1]:
+                        self.send_vision(msg[3], self.game.cards[msg[2]].draw(msg[3], msg[1]))
                 else:
                     self.game.cards[msg[2]].draw(msg[3], msg[1])
             elif msg[0] == 'vision':
-                self.game.cards[0].answer(msg[1], msg[2])
+                self.game.cards[card.TYPES.index(card.CardVision)].answer(msg[1], msg[2])
             else:
                 print(msg)
 

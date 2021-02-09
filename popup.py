@@ -1,6 +1,8 @@
+import os
 import tkinter
 
-import pygame
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # To hide pygame message
+import pygame  # noqa: E402
 
 
 class Popup(tkinter.Toplevel):
