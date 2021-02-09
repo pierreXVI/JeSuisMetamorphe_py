@@ -103,7 +103,8 @@ class Server(asyncore.dispatcher):
         tokens_center (List[Tuples[float, float]]): the 2 * game.N_PLAYERS token coordinates,
             stored as tuples of length 2, where token_center[2 * i] and token_center[2 * i + 1] belong to player i
         dices_val (List[int]): the dice 4 and dice 6 values, in this order
-        characters (List[Tuple[int, int, bool]]): the playing characters, stored as (alignment, i, flag_revealed),
+        characters (List[Tuple[int, int, bool, List[Tuple[int, int]]]]): the playing characters,
+            stored as (alignment, i, flag_revealed, equipments),
             the character is then game.Character.CHARACTERS[alignment][i], and is revealed if flag_revealed == True
         areas (List[int]): order of the 6 area cards
         active_player (int): the current player
@@ -140,7 +141,7 @@ class Server(asyncore.dispatcher):
         for align in (0, 1, 2):
             n_total = len(game.Character.CHARACTERS[align])
             n_avail = game.Character.CHARACTERS_REPARTITION[game.N_PLAYERS][align]
-            self.characters += [(align, i, False) for i in random.sample(range(n_total), n_avail)]
+            self.characters += [(align, i, False, []) for i in random.sample(range(n_total), n_avail)]
         random.shuffle(self.characters)
 
         self.areas = list(range(6))
@@ -149,9 +150,7 @@ class Server(asyncore.dispatcher):
         self.active_player = 0  # Todo
         # self.active_player = random.randrange(game.N_PLAYERS)
 
-        self.cards = [list(range(len(game.CardBlack.CARDS))),
-                      list(range(len(game.CardVision.CARDS))),
-                      list(range(len(game.CardWhite.CARDS)))]
+        self.cards = [list(range(len(card_type.CARDS))) for card_type in game.Card.TYPES]
         for card in self.cards:
             random.shuffle(card)
 

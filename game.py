@@ -72,7 +72,7 @@ class Game:
         self.bg.fill(self.BACKGROUND_COLOR)
         self.bg.blit(pygame.image.load("resources/background.jpg"), (0, 0))
 
-        self.cards = [CardBlack((800, 25), self), CardVision((1000, 25), self), CardWhite((1200, 25), self)]
+        self.cards = [Card.TYPES[0]((800, 25), self), Card.TYPES[1]((1000, 25), self), Card.TYPES[2]((1200, 25), self)]
         for card in self.cards:
             card.draw_on(self.bg)
 
@@ -143,6 +143,10 @@ class Game:
                     for i in range(len(self.cards)):
                         if self.cards[i].collide(event.pos):
                             self.client.draw(i)
+
+                    for c in self.characters:
+                        if c.collide(event.pos):
+                            c.show_inventory()
                 if event.type == pygame.MOUSEBUTTONUP:
                     for i in (2 * self.client.i, 2 * self.client.i + 1):
                         token = self.tokens[i]
@@ -204,6 +208,8 @@ class Card:
     WIDTH, HEIGHT = 180, 240
 
     CARDS = []
+
+    TYPES = []  # The card types
 
     def __init__(self, nw_position, game):
         """
@@ -524,6 +530,9 @@ class CardWhite(Card):
         return DrawWhitePopup(self.game)
 
 
+Card.TYPES = [CardBlack, CardVision, CardWhite]
+
+
 class Area:
     """
     Represents an area card, and defines the data regarding the areas
@@ -602,8 +611,9 @@ class Character:
     Attributes:
         revealed (bool)
         nw_position (Tuple[float, float])
-        owned (bool): True if the character belong to the Game instance owner
+        i_player (int): the corresponding player id
         game (Game): the Game instance
+        equipments (List[Tuple[int, int]]): the character equipments
         card_back (pygame.Surface)
         card (pygame.Surface)
     """
@@ -739,20 +749,22 @@ class Character:
         8: (3, 2, 3)
     }
 
-    def __init__(self, align, i_character, revealed, nw_position, i_player, game):
+    def __init__(self, align, i_character, revealed, equipments, nw_position, i_player, game):
         """
         Args:
             align (int): 0 for Shadow, 1 for Neutral and 2 for Hunter
             i_character (int): the character id in it's alignment
             revealed (bool)
+            equipments (List[Tuple[int, int]])
             nw_position (Tuple[float, float])
             i_player (int): the corresponding player id
             game (Game)
         """
         self.revealed = revealed
         self.nw_position = nw_position
-        self.owned = game.client.i == i_player
+        self.i_player = i_player
         self.game = game
+        self.equipments = equipments
 
         self.card_back = pygame.surface.Surface((self.WIDTH + 2 * self.MARGIN, self.HEIGHT + 2 * self.MARGIN),
                                                 flags=pygame.HWSURFACE | pygame.DOUBLEBUF)
@@ -808,7 +820,7 @@ class Character:
         Returns:
             None
         """
-        if self.revealed or (self.owned and self.collide(pygame.mouse.get_pos())):
+        if self.revealed or (self.i_player == self.game.client.i and self.collide(pygame.mouse.get_pos())):
             surface.blit(self.card, self.nw_position)
         else:
             surface.blit(self.card_back, self.nw_position)
@@ -844,6 +856,31 @@ class Character:
 
             return RevealPopup(self.game).answer
         return False
+
+    def show_inventory(self):
+        class InventoryPopup(popup.Popup):
+            def __init__(self, game, character):
+                super().__init__(game)
+
+                if character.equipments:
+                    tkinter.Label(self, text="Le joueur {0} possède les équipements :"
+                                  .format(PLAYERS[character.i_player][0]),
+                                  wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
+                else:
+                    tkinter.Label(self, text="Le joueur {0} ne possède pas d'équipement"
+                                  .format(PLAYERS[character.i_player][0]),
+                                  wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
+                for equip in character.equipments:
+                    card = Card.TYPES[equip[0]].CARDS[equip[1]]
+                    tkinter.Label(self, text='{0} : {1}'.format(card[0], card[2]),
+                                  wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
+
+                tkinter.Button(self, text="Ok", padx=30, pady=10, command=self.destroy).pack(padx=30, pady=30)
+
+                self.center()
+                self.show()
+
+        return InventoryPopup(self.game, self)
 
 
 class Token:
