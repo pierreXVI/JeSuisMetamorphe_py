@@ -311,6 +311,14 @@ class CardBlack(Card):
         self.card_back.fill((20, 20, 20))
 
     def draw(self, i_card, i_player):
+        """
+        Args:
+            i_card (int)
+            i_player (int)
+
+        Returns:
+            None
+        """
         if self.CARDS[i_card][1]:
             self.game.characters[i_player].equipments.append((CardBlack, i_card))
 
@@ -330,7 +338,7 @@ class CardBlack(Card):
                 self.center()
                 self.show()
 
-        return DrawDarkPopup(self.game)
+        DrawDarkPopup(self.game)
 
 
 class CardVision(Card):
@@ -382,11 +390,11 @@ class CardVision(Card):
         super().__init__(nw_position, game)
         self.card_back.fill((0, 255, 0))
 
-    def draw(self, i_card, _):
+    def draw(self, i_card, i_player):
         """
         Args:
             i_card (int)
-
+            i_player (int)
         Returns:
             int: who to send the vision card
         """
@@ -451,15 +459,12 @@ class CardVision(Card):
                 tkinter.Label(self, text=CardVision.CARDS[i_card][2],
                               wraplength=300, padx=30, pady=10, font=(None, 12)).pack()
 
-                tkinter.Button(self, text="Ok", padx=30, pady=10, command=self.answer).pack(padx=30, pady=30)
+                tkinter.Button(self, text="Ok", padx=30, pady=10, command=self.destroy).pack(padx=30, pady=30)
 
                 self.center()
                 self.show()
 
-            def answer(self):
-                self.destroy()
-
-        return AnswerVisionPopup(self.game)
+        AnswerVisionPopup(self.game)
 
 
 class CardWhite(Card):
@@ -514,6 +519,14 @@ class CardWhite(Card):
         self.card_back.fill((255, 255, 255))
 
     def draw(self, i_card, i_player):
+        """
+        Args:
+            i_card (int)
+            i_player (int)
+
+        Returns:
+            None
+        """
         if self.CARDS[i_card][1]:
             self.game.characters[i_player].equipments.append((CardWhite, i_card))
 
@@ -533,7 +546,7 @@ class CardWhite(Card):
                 self.center()
                 self.show()
 
-        return DrawWhitePopup(self.game)
+        DrawWhitePopup(self.game)
 
 
 Card.TYPES = [CardBlack, CardVision, CardWhite]
