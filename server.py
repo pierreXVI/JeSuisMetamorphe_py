@@ -68,6 +68,7 @@ class ClientHandler(asyncore.dispatcher):
                     comm.send(client, ['dices', self.server.dices_val])
         elif msg[0] == 'reveal':
             print("Player {0} came out of the closet".format(game.PLAYERS[self.i][0]))
+            self.server.characters[self.i][2] = True
             for client in self.server.clients:
                 if client is not None:
                     comm.send(client, ['reveal', self.i])
@@ -112,7 +113,7 @@ class Server(asyncore.dispatcher):
         tokens_center (List[Tuples[float, float]]): the 2 * game.N_PLAYERS token coordinates,
             stored as tuples of length 2, where token_center[2 * i] and token_center[2 * i + 1] belong to player i
         dices_val (List[int]): the dice 4 and dice 6 values, in this order
-        characters (List[Tuple[int, int, bool, List[Tuple[int, int]]]]): the playing characters,
+        characters (List[List[int, int, bool, List[Tuple[int, int]]]]): the playing characters,
             stored as (alignment, i, flag_revealed, equipments),
             the character is then game.Character.CHARACTERS[alignment][i], and is revealed if flag_revealed == True
         areas (List[int]): order of the 6 area cards
@@ -150,7 +151,7 @@ class Server(asyncore.dispatcher):
         for align in (0, 1, 2):
             n_total = len(game.Character.CHARACTERS[align])
             n_avail = game.Character.CHARACTERS_REPARTITION[game.N_PLAYERS][align]
-            self.characters += [(align, i, False, []) for i in random.sample(range(n_total), n_avail)]
+            self.characters += [[align, i, False, []] for i in random.sample(range(n_total), n_avail)]
         random.shuffle(self.characters)
 
         self.areas = list(range(6))
