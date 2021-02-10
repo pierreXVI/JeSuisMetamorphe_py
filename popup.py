@@ -23,6 +23,15 @@ class Popup(tkinter.Toplevel):
         self._game = game
         self._open = False
 
+    def callback(self):
+        """
+        A callback function, called once per frame
+
+        Returns:
+            None
+        """
+        return
+
     def show(self):
         """
         Shows the popup window.
@@ -36,6 +45,7 @@ class Popup(tkinter.Toplevel):
         for token in self._game.owned_tokens:
             token.drop()
         while self._open:
+            self.callback()
             self.update_idletasks()
             self.update()
             pygame.event.clear()

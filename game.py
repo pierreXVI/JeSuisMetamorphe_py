@@ -147,7 +147,7 @@ class Game:
 
                     for c in self.characters:
                         if c.collide(event.pos):
-                            c.show_inventory()
+                            c.inventory()
                 if event.type == pygame.MOUSEBUTTONUP:
                     for i in (2 * self.client.i, 2 * self.client.i + 1):
                         token = self.tokens[i]
@@ -518,62 +518,62 @@ class Character:
             return RevealPopup(self.game).answer
         return False
 
-    def show_inventory(self):
+    def inventory(self):
         class InventoryPopup(popup.Popup):
             def __init__(self, game, character):
                 super().__init__(game)
                 self.character = character
 
-                self.text = tkinter.StringVar()
+                self.label = tkinter.Label(self, text='', wraplength=600, padx=30, pady=10, font=(None, 16))
                 self.listbox = tkinter.Listbox(self, selectmode=tkinter.SINGLE)
-                self.listbox.config(width=0, height=0)
-                self.button = tkinter.Button(self, text="Prendre équipement", padx=30, pady=10, command=self.take)
+                self.button_take = tkinter.Button(self, text="Prendre équipement", padx=30, pady=10, command=self.take)
+                self.button_ok = tkinter.Button(self, text="Ok", padx=30, pady=10, command=self.destroy)
+                self.update_widgets()
 
-                tkinter.Label(self, textvariable=self.text, wraplength=600, padx=30, pady=10, font=(None, 16)).pack()
-                self.listbox.pack()
-                self.button.pack(padx=30, pady=30)
-                tkinter.Button(self, text="Ok", padx=30, pady=10, command=self.destroy).pack(padx=30, pady=30)
-
-                self.center()
                 self.show()
 
-            def show(self):
-                self._open = True
-                for token in self._game.owned_tokens:
-                    token.drop()
+            def update_widgets(self):
+                self.label.pack_forget()
+                self.listbox.pack_forget()
+                self.button_take.pack_forget()
+                self.button_ok.pack_forget()
 
-                while self._open:
-                    if self.character.equipments:
-
-                        ids = self.listbox.curselection()
-
-                        self.listbox.delete(0, tkinter.END)
-                        self.text.set("Le joueur {0} possède les équipements :"
+                self.listbox.delete(0, tkinter.END)
+                self.listbox.config(width=0, height=0)
+                if self.character.equipments:
+                    self.label.config(text="Le joueur {0} possède les équipements :"
                                       .format(PLAYERS[self.character.i_player][0]))
-                        for equip in self.character.equipments:
-                            c = equip[0].CARDS[equip[1]]
-                            self.listbox.insert(tkinter.END, '{0} : {1}'.format(c[0], c[2]))
-                        if ids:
-                            self.listbox.selection_set(ids[0])
-                        self.listbox.pack()
-                        self.button.pack()
-                    else:
-                        self.text.set("Le joueur {0} ne possède pas d'équipement"
-                                      .format(PLAYERS[self.character.i_player][0]))
-                        self.listbox.pack_forget()
-                        self.button.pack_forget()
 
-                    self.update_idletasks()
-                    self.update()
-                    pygame.event.clear()
-                    self._game.client.poll()
-                    self._game.update_display()
-                    self._game.clock.tick(self._game.FRAME_RATE)
+                    for equip in self.character.equipments:
+                        c = equip[0].CARDS[equip[1]]
+                        self.listbox.insert(tkinter.END, '{0} : {1}'.format(c[0], c[2]))
+
+                    self.label.pack()
+                    self.listbox.pack()
+                    if self._game.client.i != self.character.i_player:
+                        self.button_take.pack()
+                else:
+                    self.label.config(text="Le joueur {0} ne possède pas d'équipement"
+                                      .format(PLAYERS[self.character.i_player][0]))
+
+                    self.label.pack()
+
+                self.button_ok.pack()
+                self.center()
+
+            def callback(self):
+                """
+                Update the listbox
+
+                Returns:
+                    None
+                """
+                if self.listbox.size() != len(self.character.equipments):
+                    self.update_widgets()
 
             def take(self):
                 ids = self.listbox.curselection()
-                if len(ids) == 1:
-                    self.listbox.delete(ids[0])
+                if ids:
                     self._game.client.take_equipment(self.character.i_player, ids[0])
 
         return InventoryPopup(self.game, self)
