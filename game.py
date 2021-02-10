@@ -12,7 +12,6 @@ import popup  # noqa: E402
 PLAYERS = [('Red', (255, 0, 0)), ('Green', (0, 255, 0)), ('Blue', (0, 0, 255)), ('White', (255, 255, 255)),
            ('Orange', (250, 150, 50)), ('Yellow', (255, 255, 0)), ('Purple', (100, 0, 200)), ('Black', (20, 20, 20))]
 """ List of the player, where a player is represented by the tuple (name (str), color_rgb (Tuple[int, int, int])) """
-N_PLAYERS = len(PLAYERS)
 
 
 class Game:
@@ -30,10 +29,10 @@ class Game:
         flag_zoom (bool)
 
         cards (List[Card]): the three card decks, list of three Card instances
-        tokens (List[Token]): the 2 * N_PLAYERS Token instances
+        tokens (List[Token]): the 2 * server._N_PLAYERS Token instances
         owned_tokens (List[Token]): the 2 Token instances owned by the player
         dices (List[Dice]): the 2 Dice instances
-        characters (List[Character]): the N_PLAYERS Character instances
+        characters (List[Character]): the server._N_PLAYERS Character instances
         active_player (ActivePlayer)
     """
 
@@ -50,7 +49,7 @@ class Game:
         """
         Args:
             c (client.Client)
-            tokens_center (List[Tuple[float, float]]): the 2 * game.N_PLAYERS token coordinates,
+            tokens_center (List[Tuple[float, float]]): the 2 * server._N_PLAYERS token coordinates,
                 stored as tuples of length 2, where token_center[2 * i] and token_center[2 * i + 1] belong to player i
             dices_val (List[int]): the dice 4 and dice 6 values, in this order
             characters (List[Tuple[int, int, bool]]): the playing characters, stored as (alignment, i, flag_revealed),
@@ -85,7 +84,7 @@ class Game:
         self.flag_zoom = False
 
         self.tokens = []
-        for i in range(N_PLAYERS):
+        for i in range(len(characters)):
             self.tokens.append(Token(PLAYERS[i][1], tokens_center[2 * i]))
             self.tokens.append(Token(PLAYERS[i][1], tokens_center[2 * i + 1]))
         self.owned_tokens = [self.tokens[2 * self.client.i], self.tokens[2 * self.client.i + 1]]
@@ -94,7 +93,7 @@ class Game:
                       Dice(4, 6, ((self.ZOOM_W + self.W - 4 * (Character.WIDTH + 30)) / 2, 700), dices_val[1])]
 
         self.characters = []
-        for i in range(N_PLAYERS):
+        for i in range(len(characters)):
             self.characters.append(Character(*characters[i],
                                              nw_position=(self.W - (i % 4 + 1) * (Character.WIDTH + 30),
                                                           self.H - (i // 4 + 1) * (Character.HEIGHT + 30)),

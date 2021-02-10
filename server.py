@@ -14,6 +14,8 @@ import card
 import comm
 import game
 
+_N_PLAYERS = 8
+
 
 class ClientHandler(asyncore.dispatcher):
     """
@@ -74,7 +76,7 @@ class ClientHandler(asyncore.dispatcher):
                     comm.send(client, ['reveal', self.i])
         elif msg[0] == 'turn':
             print("Player {0} ended it's turn".format(game.PLAYERS[self.i][0]))
-            self.server.active_player = (self.server.active_player + 1) % game.N_PLAYERS
+            self.server.active_player = (self.server.active_player + 1) % _N_PLAYERS
             for client in self.server.clients:
                 if client is not None:
                     comm.send(client, ['turn', self.server.active_player])
@@ -109,8 +111,8 @@ class Server(asyncore.dispatcher):
     It also maintains the game data.
 
     Attributes:
-        clients (List[socket.socket]): list of size game.N_PLAYERS, containing the connected clients, or None
-        tokens_center (List[Tuples[float, float]]): the 2 * game.N_PLAYERS token coordinates,
+        clients (List[socket.socket]): list of size _N_PLAYERS, containing the connected clients, or None
+        tokens_center (List[Tuples[float, float]]): the 2 * _N_PLAYERS token coordinates,
             stored as tuples of length 2, where token_center[2 * i] and token_center[2 * i + 1] belong to player i
         dices_val (List[int]): the dice 4 and dice 6 values, in this order
         characters (List[List[int, int, bool, List[Tuple[int, int]]]]): the playing characters,
@@ -133,24 +135,24 @@ class Server(asyncore.dispatcher):
         self.create_socket()
         self.set_reuse_addr()
         self.bind((host, port))
-        self.listen(game.N_PLAYERS)
-        self.clients = game.N_PLAYERS * [None]
+        self.listen(_N_PLAYERS)
+        self.clients = _N_PLAYERS * [None]
 
         self.tokens_center = []
-        for i in range(game.N_PLAYERS):
-            self.tokens_center.append((425 + 30 * math.cos(2 * i * math.pi / game.N_PLAYERS),
-                                       270 + 30 * math.sin(2 * i * math.pi / game.N_PLAYERS)))
-            self.tokens_center.append((60 + 30 * (i % (game.N_PLAYERS / 2)),
-                                       430 + 30 * (i // (game.N_PLAYERS / 2))))
+        for i in range(_N_PLAYERS):
+            self.tokens_center.append((425 + 30 * math.cos(2 * i * math.pi / _N_PLAYERS),
+                                       270 + 30 * math.sin(2 * i * math.pi / _N_PLAYERS)))
+            self.tokens_center.append((60 + 30 * (i % (_N_PLAYERS / 2)),
+                                       430 + 30 * (i // (_N_PLAYERS / 2))))
 
         self.dices_val = [random.randint(1, 4), random.randint(1, 6)]
 
         self.characters = []
-        if game.N_PLAYERS >= 7:  # Removing Bob for 7 and 8 players
+        if _N_PLAYERS >= 7:  # Removing Bob for 7 and 8 players
             game.Character.CHARACTERS[1 + 0].pop(4)
         for align in (0, 1, 2):
             n_total = len(game.Character.CHARACTERS[align])
-            n_avail = game.Character.CHARACTERS_REPARTITION[game.N_PLAYERS][align]
+            n_avail = game.Character.CHARACTERS_REPARTITION[_N_PLAYERS][align]
             self.characters += [[align, i, False, []] for i in random.sample(range(n_total), n_avail)]
         random.shuffle(self.characters)
 
@@ -158,7 +160,7 @@ class Server(asyncore.dispatcher):
         random.shuffle(self.areas)
 
         self.active_player = 0  # Todo
-        # self.active_player = random.randrange(game.N_PLAYERS)
+        # self.active_player = random.randrange(_N_PLAYERS)
 
         self.cards = [list(range(len(card_type.CARDS))) for card_type in card.TYPES]
         for c in self.cards:
