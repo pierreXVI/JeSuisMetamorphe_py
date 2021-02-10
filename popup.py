@@ -17,8 +17,7 @@ class Popup(tkinter.Toplevel):
         super().__init__()
         self.title('')
         self.wm_resizable(False, False)
-        self.wm_attributes('-topmost', True)
-        self.wm_attributes('-type', 'splash')
+        self.wm_overrideredirect(True)
 
         self._game = game
         self._open = False
